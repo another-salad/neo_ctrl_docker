@@ -1,0 +1,20 @@
+{
+    "locale": {
+        "name": "London",
+        "region": "England",
+        "timezone": "Europe/London",
+        "latitude": 51.4733,
+        "longitude": -0.0008333
+    },
+    "led_colours": {
+        "day": {
+            "rgb": [0, 0, 250],
+            "brightness": 0.9
+        },
+        "night": {
+            "rgb": [245, 0, 0],
+            "brightness": 0.8
+        }
+    },
+    "seasonal_variance" : [4, 3, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5]
+}

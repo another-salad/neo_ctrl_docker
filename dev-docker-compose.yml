@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  neo_led_ctrl:
+    image: py38_9_neo_led
+    container_name: dev_neo_led
+    restart: always
+    network_mode: host
+    volumes:
+        - "./app:/app"
+        - "./.vscode:/app.vscode"
+    environment:
+      TZ: "Europe/London"
+    command: tail -F anything  # keeps the container running
