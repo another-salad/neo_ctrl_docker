@@ -10,7 +10,9 @@ sun has set. The same will not be true in summer.
 
 """
 
-from datetime import datetime
+from datetime import datetime, tzinfo
+
+from requests import post
 
 from astral import LocationInfo
 from astral.sun import sun
@@ -18,14 +20,10 @@ from astral.sun import sun
 from common.get_conf import config_data
 
 
-class GetValues():
+class ValuesBase():
     """
     to do
     """
-    def __init__(self, config_file: str = "conf") -> None:
-        self.config = config_data(config_file)
-        self.led_vals = self._get_led_vals()
-        self.time_now = datetime.now()
 
     @staticmethod
     def _get_sunset(**kwargs) -> object:
@@ -42,17 +40,26 @@ class GetValues():
 
         Args:
             sunset_dt ([type]): [description]
+
+        Returns:
+            object: A Datetime object (without TZ)
         """
-        # DATETIME OBJECTS NOT WRITEABLE - MAKE NEW DATETIME OBJECT
-        sunset_dt.hour += self.config["seasonal_offset"][sunset_dt.month - 1]
-        return sunset_dt
+        offset_hour = sunset_dt.hour + self.config["seasonal_offset"][sunset_dt.month - 1]
+        # Exclude the tz info as it is not needed and makes later comparison more work
+        return datetime(
+            year=sunset_dt.year,
+            month=sunset_dt.month,
+            day=sunset_dt.day,
+            hour=offset_hour,
+            minute=sunset_dt.minute
+        )
 
     def _get_led_vals(self):
         """[summary]
         """
         led_vals = None
         sunset_w_offset = self._add_offset(self._get_sunset(**self.config["locale"]))
-        if sunset_w_offset < self.time_now:
+        if sunset_w_offset > self.time_now:
             led_vals = self.config["led_colours"]["day"]
         else:
             led_vals = self.config["led_colours"]["night"]
@@ -60,12 +67,17 @@ class GetValues():
         return led_vals
 
 
-class SetValues(GetValues):
+class SetValues(ValuesBase):
     """[summary]
 
     Args:
         GetValues ([type]): [description]
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config_file: str = "conf") -> None:
+        self.config = config_data(config_file)
+        self.time_now = datetime.now()
+        self.led_vals = self._get_led_vals()
 
+    def post(self):
+        """posts the LED values"""
+        pass
