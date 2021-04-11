@@ -16,5 +16,5 @@
             "brightness": 0.8
         }
     },
-    "seasonal_variance" : [4, 3, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5]
+    "seasonal_offset" : [4, 3, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5]
 }

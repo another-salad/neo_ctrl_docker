@@ -1,21 +1,19 @@
-"""Returns the JSON conf file as a Python object"""
+"""Returns the JSON conf file as a dict"""
 
 from pathlib import Path
-
-from collections import namedtuple
 
 from json import load
 
 
-def config_data(file="conf") -> object:
-    """Returns the JSON config as a Python object
+def config_data(file: str) -> dict:
+    """Returns the JSON config as a dict
 
     Args:
-        file (str, optional): The config file name (without ext). Defaults to "conf".
+        file (str): The config file name (without ext).
 
     Returns:
-        object: A python object
+        dict: A python object
     """
     full_path = Path(__file__).parent.absolute()
     with open(Path(full_path, "config", file + ".json"), "r") as conf:
-        return load(conf, object_hook=lambda d: namedtuple('config', d.keys())(*d.values()))
+        return load(conf)
