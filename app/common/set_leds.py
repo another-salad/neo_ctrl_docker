@@ -12,6 +12,8 @@ sun has set. The same will not be true in summer.
 
 from datetime import datetime, tzinfo
 
+from json import dumps
+
 from requests import post
 
 from astral import LocationInfo
@@ -59,9 +61,12 @@ class ValuesBase():
         """
         led_vals = None
         sunset_w_offset = self._add_offset(self._get_sunset(**self.config["locale"]))
+        print(sunset_w_offset)
         if sunset_w_offset > self.time_now:
+            print("day")
             led_vals = self.config["led_colours"]["day"]
         else:
+            print("night")
             led_vals = self.config["led_colours"]["night"]
 
         return led_vals
@@ -73,11 +78,23 @@ class SetValues(ValuesBase):
     Args:
         GetValues ([type]): [description]
     """
-    def __init__(self, config_file: str = "conf") -> None:
+    def __init__(self, host, config_file: str = "conf") -> None:
+        self.host = host
         self.config = config_data(config_file)
         self.time_now = datetime.now()
         self.led_vals = self._get_led_vals()
 
-    def post(self):
+    def post(self, page="set_all", vals=None):
         """posts the LED values"""
-        pass
+        if not vals:
+            vals = self.led_vals
+
+        resp = post(f"http://{self.host}/{page}", json=vals)
+        try:
+
+            resp = resp.json()
+        
+        except Exception as ex:
+            resp = dumps({"error": str(ex)})
+
+        return resp
