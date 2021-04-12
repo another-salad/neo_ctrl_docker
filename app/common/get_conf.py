@@ -5,7 +5,7 @@ from pathlib import Path
 from json import load
 
 
-def config_data(file: str) -> dict:
+def config_data(file: str = "conf") -> dict:
     """Returns the JSON config as a dict
 
     Args:

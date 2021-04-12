@@ -1,18 +1,20 @@
 """Determines what colours the LEDs should be set to by:
 
 1. The LED colour values in the config file
-2. The time of sunset
+2. The time of sunset/sunrise
 3. The seasonal offset in the config file
 
-During the least summery months, a lead time of X hours (set in config) will be applied to the Night light
+During the least summery months, a lead time of X hours (set in config) will be applied to the night light
 transition. This is due to the early sunset in winter, day colour lighting will be wanted after the
 sun has set. The same will not be true in summer.
 
+The night is deemed to have finished when the sun rises!
+
 """
 
-from datetime import datetime, tzinfo
+from datetime import datetime
 
-from json import dumps
+from pytz import timezone
 
 from requests import post
 
@@ -26,16 +28,24 @@ class ValuesBase():
     """
     to do
     """
+    config = config_data()
+    location = LocationInfo(**config["locale"])
+    time_now = datetime.now(timezone(config["locale"]["timezone"]))
 
-    @staticmethod
-    def _get_sunset(**kwargs) -> object:
+    def __init__(self) -> None:
+        self.sunrise = self._get_sun("sunrise")
+        self.sunset = self._get_sun("sunset")
+
+    def _get_sun(self, key) -> object:
         """[summary]
+
+        Args:
+            key ([type]): [description]
 
         Returns:
             object: [description]
         """
-        location = LocationInfo(**kwargs)
-        return sun(location.observer, tzinfo=location.timezone)["sunset"]
+        return sun(self.location.observer, tzinfo=self.location.timezone)[key]
 
     def _add_offset(self, sunset_dt):
         """[summary]
@@ -44,29 +54,26 @@ class ValuesBase():
             sunset_dt ([type]): [description]
 
         Returns:
-            object: A Datetime object (without TZ)
+            object: A Datetime object
         """
         offset_hour = sunset_dt.hour + self.config["seasonal_offset"][sunset_dt.month - 1]
-        # Exclude the tz info as it is not needed and makes later comparison more work
         return datetime(
             year=sunset_dt.year,
             month=sunset_dt.month,
             day=sunset_dt.day,
             hour=offset_hour,
-            minute=sunset_dt.minute
+            minute=sunset_dt.minute,
+            tzinfo=sunset_dt.tzinfo
         )
 
     def _get_led_vals(self):
         """[summary]
         """
         led_vals = None
-        sunset_w_offset = self._add_offset(self._get_sunset(**self.config["locale"]))
-        print(sunset_w_offset)
-        if sunset_w_offset > self.time_now:
-            print("day")
+        sunset_w_offset = self._add_offset(self.sunset)
+        if sunset_w_offset > self.time_now > self.sunrise:
             led_vals = self.config["led_colours"]["day"]
         else:
-            print("night")
             led_vals = self.config["led_colours"]["night"]
 
         return led_vals
@@ -78,10 +85,9 @@ class SetValues(ValuesBase):
     Args:
         GetValues ([type]): [description]
     """
-    def __init__(self, host, config_file: str = "conf") -> None:
+    def __init__(self, host) -> None:
+        super().__init__()
         self.host = host
-        self.config = config_data(config_file)
-        self.time_now = datetime.now()
         self.led_vals = self._get_led_vals()
 
     def post(self, page="set_all", vals=None):
@@ -89,12 +95,12 @@ class SetValues(ValuesBase):
         if not vals:
             vals = self.led_vals
 
-        resp = post(f"http://{self.host}/{page}", json=vals)
         try:
 
+            resp = post(f"http://{self.host}/{page}", json=vals)
             resp = resp.json()
         
         except Exception as ex:
-            resp = dumps({"error": str(ex)})
+            resp = {"success": False, "error": str(ex), "time": self.time_now.strftime("%d/%m/%Y, %H:%M:%S")}
 
         return resp
