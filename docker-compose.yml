@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  neo_led_ctrl_runtime:
+    image: py38_9_neo_led
+    container_name: neo_led_runtime
+    network_mode: host
+    volumes:
+        - "./app:/app"
+    environment:
+      TZ: "Europe/London"
+    command: python app.py ${HOST}
