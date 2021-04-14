@@ -9,4 +9,4 @@ services:
         - "./app:/app"
     environment:
       TZ: "Europe/London"
-    command: python app.py ${HOST}
+    command: python app.py

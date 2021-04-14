@@ -1,4 +1,10 @@
 {
+    "hosts": {
+        "led": "192.168.1.204:8082",
+        "ldr": "192.168.1.152:8082"
+    },
+    "ldr_time": 8,
+    "ldr_page": "ldr_time",
     "locale": {
         "name": "London",
         "region": "England",
@@ -14,7 +20,15 @@
         "night": {
             "rgb": [245, 0, 0],
             "brightness": 0.8
+        },
+        "off": {
+            "rgb": [0, 0, 0],
+            "brightness": 0.0
         }
     },
-    "seasonal_offset" : [4, 3, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5]
+    "seasonal_offset" : [4, 3, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5],
+    "quiet_time": {
+        "start": "06:00:00",
+        "end": "12:00:00"
+    }
 }
